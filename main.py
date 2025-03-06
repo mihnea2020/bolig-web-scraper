@@ -10,12 +10,16 @@ def search(data, url):
     prices = soup.find_all("span", class_="css-dlcfcd")
     addresses = soup.find_all("span", class_="css-avmlqd")
     for name, price, address in zip(names, prices, addresses):
-        rooms_match = re.search(r"^\d+", name.text)  # Matches digits at the start
+        rooms_match = re.search(r"^\d+", name.text)
         rooms = rooms_match.group() if rooms_match else None
 
-        size_match = re.search(r"\d+\s*m²", name.text)  # Matches "56 m²"
+        dwelling_match = re.search(r"(?<=vær\.\s)(\w+)|(?<=\s)(\w+)(?=\s+på)", name.text)
+        dwelling_type = dwelling_match.group() if dwelling_match else None
+
+        size_match = re.search(r"\d+\s*m²", name.text) 
         size = size_match.group() if size_match else None
-        data.append((rooms, size, price.text, address.text))
+
+        data.append((rooms, dwelling_type, size, price.text, address.text))
 
 def scrape():
     data = []
@@ -28,7 +32,7 @@ def scrape():
 
     with open("listings.csv", "w", newline="", encoding="utf-8") as f:
         writer = csv.writer(f, delimiter = ";")
-        writer.writerow(["Rooms", "Size", "Price", "Address"])
+        writer.writerow(["Rooms","Type", "Size", "Price", "Address"])
         writer.writerows(data) 
 
 if __name__ == '__main__':
